@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دخول النظام</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: radial-gradient(circle at center, #35535c, #21353e); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; color: #ffffff; position: relative;}
+        
+        .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: all 0.3s ease; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .back-btn:hover { background: rgba(214, 140, 41, 0.8); transform: translateX(-5px); color: white; }
+        
+        .eagle-logo { width: 100px; margin-bottom: 20px; filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.5)); }
+        
+        .login-box { background: rgba(20, 26, 50, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(214, 140, 41, 0.4); border-radius: 20px; padding: 40px 30px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border-top: 5px solid #c59736; }
+        .title { font-size: 1.8rem; font-weight: 900; color: #f5c678; margin-bottom: 10px; }
+        .subtitle { font-size: 1rem; color: #9baab3; margin-bottom: 30px; font-weight: 600;}
+        
+        .form-control { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #9baab3; font-size: 1.3rem; background: #ffffff; color: #141A32; font-weight: 800; outline: none; transition: 0.3s; text-align: center; letter-spacing: 2px; margin-bottom: 20px;}
+        .form-control:focus { border-color: #c59736; box-shadow: 0 0 10px rgba(197, 151, 54, 0.5); }
+        
+        .btn { background: linear-gradient(135deg, #c59736, #9e7320); color: white; border: none; padding: 12px 30px; font-size: 1.4rem; font-weight: 800; border-radius: 15px; cursor: pointer; transition: 0.3s; width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(197, 151, 54, 0.4); }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .custom-alert-box { background: #fff; border-radius: 20px; width: 100%; max-width: 400px; padding: 30px; text-align: center; border-top: 6px solid #e74c3c; color: #141A32;}
+        .alert-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 10px; }
+        .alert-msg { font-size: 1.1rem; font-weight: 600; color: #475569; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">رجوع ↩</a>
+    
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Coat_of_arms_of_Egypt_%28Official%29.svg/1200px-Coat_of_arms_of_Egypt_%28Official%29.svg.png" class="eagle-logo">
+    
+    <div class="login-box">
+        <h2 class="title">دخول النظام</h2>
+        <p class="subtitle">رقم الموبايل أو كود المسئول</p>
+        
+        <input type="tel" id="loginInput" class="form-control" placeholder="01xxxxxxxxx" oninput="handleInputBehavior(this)">
+        
+        <button class="btn" onclick="checkLogin()">دخول</button>
+    </div>
+
+    <div class="modal-overlay" id="customAlert">
+        <div class="custom-alert-box" id="alertBox">
+            <h3 class="alert-title" id="alertTitle">تنبيه</h3>
+            <p class="alert-msg" id="alertMsg">الرسالة</p>
+            <button class="btn" style="background: #e74c3c;" onclick="closeCustomAlert()">حسناً</button>
+        </div>
+    </div>
+
+    <script>
+        // 🌟 الدالة الجديدة للتحكم في شكل الحقل (مكشوف أم مشفر) 🌟
+        function handleInputBehavior(inputElement) {
+            // منع كتابة الحروف، السماح بالأرقام فقط
+            inputElement.value = inputElement.value.replace(/[^0-9]/g, '');
+
+            const val = inputElement.value;
+            
+            // إذا بدأ الرقم بـ 5 (كود المسئول)، حوله إلى كلمة سر مشفرة
+            if (val.startsWith('5')) {
+                inputElement.type = 'password';
+                inputElement.maxLength = 4; // كود المسئول 4 أرقام فقط
+            } else {
+                // غير ذلك (يبدأ بـ 01)، اجعله حقلاً عادياً ليظهر الموبايل
+                inputElement.type = 'tel';
+                inputElement.maxLength = 11; // الموبايل 11 رقم
+            }
+        }
+
+        function showMessage(title, message) {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMsg').innerText = message;
+            document.getElementById('customAlert').style.display = 'flex';
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('customAlert').style.display = 'none';
+        }
+
+        function checkLogin() {
+            const val = document.getElementById('loginInput').value;
+            
+            if (val === '5050') {
+                window.location.href = 'adm.html'; // دخول المسئول
+            } else if (val.length === 11 && val.startsWith('01')) {
+                localStorage.setItem('userMobile', val);
+                window.location.href = 't2.html'; // دخول الموظف
+            } else {
+                showMessage("خطأ في الإدخال", "برجاء إدخال رقم موبايل صحيح (11 رقم يبدأ بـ 01) أو كود المسئول بشكل صحيح.");
+            }
+        }
+    </script>
+</body>
+</html>

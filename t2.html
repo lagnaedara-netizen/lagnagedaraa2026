@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لجنة الإدارة للشهادة الإعدادية العامة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: radial-gradient(circle at center, #35535c, #21353e); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; color: #ffffff; position: relative;}
+        .eagle-logo { width: 90px; margin-bottom: 20px; filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.5)); }
+        
+        /* 🌟 تنسيق العنوان 🌟 */
+        .title { font-size: 2.2rem; font-weight: 900; margin-bottom: 40px; text-shadow: 0 4px 10px rgba(0,0,0,0.4); text-align: center; line-height: 1.4;}
+        
+        .buttons-grid { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 500px; }
+        .menu-btn { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(214, 140, 41, 0.3); color: #ffffff; padding: 20px; font-size: 1.4rem; font-weight: 800; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .menu-btn.primary { background: linear-gradient(135deg, #c59736, #9e7320); border: none; }
+        .menu-btn:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(197, 151, 54, 0.4); }
+        
+        .footer { margin-top: auto; padding-top: 30px; font-size: 1.1rem; font-weight: 600; color: #9baab3; }
+        .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: all 0.3s ease; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .back-btn:hover { background: #e74c3c; transform: translateX(-5px); color: white; border-color: #e74c3c; }
+
+        @media (max-width: 600px) {
+            .title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn" onclick="localStorage.removeItem('userMobile')">تسجيل خروج 🚪</a>
+    
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Coat_of_arms_of_Egypt_%28Official%29.svg/1200px-Coat_of_arms_of_Egypt_%28Official%29.svg.png" class="eagle-logo">
+    
+    <h1 class="title">لجنة الإدارة للشهادة الإعدادية العامة</h1>
+
+    <div class="buttons-grid">
+        <a href="t3.html" class="menu-btn primary">الراغبين في مشاركة أعمال الملاحظة</a>
+    </div>
+
+    <div class="footer">إعداد وتصميم / علاء الوكيل</div>
+</body>
+</html>

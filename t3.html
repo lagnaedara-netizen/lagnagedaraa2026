@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل ومتابعة الطلب</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: radial-gradient(circle at center, #35535c, #21353e); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; color: #ffffff; position: relative;}
+        .eagle-logo { width: 90px; margin-bottom: 20px; filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.5)); }
+        .glass-box { background: rgba(20, 26, 50, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(214, 140, 41, 0.4); border-radius: 20px; padding: 30px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border-top: 5px solid #c59736; }
+        
+        .status-board { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; margin-bottom: 25px; text-align: right; line-height: 1.8; }
+        .status-badge { padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; margin-right: 10px; display: inline-block;}
+        .status-pending { background: #f39c12; color: white; }
+        .status-approved { background: #27ae60; color: white; }
+        .status-rejected { background: #e74c3c; color: white; }
+
+        .form-group { margin-bottom: 20px; text-align: right; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: #e0e0e0; }
+        .form-control { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #9baab3; font-size: 1.1rem; background: #ffffff; color: #141A32; font-weight: 600; outline: none; transition: 0.3s; }
+        .locked-input { background-color: #e2e8f0; color: #64748b; cursor: not-allowed; border-color: #cbd5e1; user-select: none; }
+        .btn { background: linear-gradient(135deg, #c59736, #9e7320); color: white; border: none; padding: 12px 30px; font-size: 1.4rem; font-weight: 800; border-radius: 15px; cursor: pointer; transition: 0.3s; width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(197, 151, 54, 0.4); }
+        .camera-btn { background: #2c3e50; border: 1px dashed #e74c3c; color: #f5c678; margin-top: 5px; font-size: 1.1rem; cursor: pointer; padding: 15px; text-align: center; display: block; border-radius: 10px; transition: 0.3s;}
+        .camera-btn:hover { background: #34495e; }
+        .camera-btn input[type="file"] { display: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: #ffffff; color: #141A32; border-radius: 20px; width: 100%; max-width: 500px; padding: 30px; position: relative; max-height: 90vh; overflow-y: auto; border-top: 6px solid #c59736; }
+        .modal-title { font-size: 1.8rem; font-weight: 900; color: #c59736; margin-bottom: 20px; text-align: center; }
+        .pledge-box { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 20px; border-radius: 10px; font-weight: 800; text-align: center; margin-bottom: 20px; line-height: 1.6; font-size: 1.2rem;}
+        .close-btn { position: absolute; top: 15px; left: 15px; background: #e74c3c; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;}
+        .custom-alert-box { background: #fff; border-radius: 20px; width: 100%; max-width: 400px; padding: 30px; text-align: center; border-top: 6px solid #e74c3c; }
+        .alert-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 10px; }
+        .alert-msg { font-size: 1.1rem; font-weight: 600; color: #475569; margin-bottom: 20px; }
+        .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: all 0.3s ease; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .back-btn:hover { background: rgba(214, 140, 41, 0.8); transform: translateX(-5px); color: white; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #c59736; border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: inline-block; margin: 0 auto; display: none;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <a href="t2.html" class="back-btn">رجوع ↩</a>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Coat_of_arms_of_Egypt_%28Official%29.svg/1200px-Coat_of_arms_of_Egypt_%28Official%29.svg.png" class="eagle-logo" alt="شعار">
+
+    <div class="glass-box">
+        <h2 id="welcomeTitle" style="color: #f5c678; margin-bottom: 20px; font-weight: 900;">طلب مشاركة في الملاحظة</h2>
+        
+        <div id="statusBoardContainer"></div>
+
+        <p id="welcomeMsg" style="margin-bottom: 25px; font-weight: 600; color: #e0e0e0; font-size: 1.1rem;">
+            برجاء ملء الاستمارة بالبيانات الصحيحة للمشاركة.
+        </p>
+        <button id="mainBtn" class="btn" onclick="document.getElementById('dataModal').style.display='flex'">فتح الاستمارة</button>
+    </div>
+
+    <div class="modal-overlay" id="dataModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('dataModal')">×</button>
+            <h3 class="modal-title">بيانات التسجيل</h3>
+            
+            <div class="form-group">
+                <label>المرحلة التابع لها:</label>
+                <select id="stageSelect" class="form-control">
+                    <option value="">-- اختر المرحلة --</option>
+                    <option value="المرحلة الابتدائية">المرحلة الابتدائية</option>
+                    <option value="المرحلة الإعدادية">المرحلة الإعدادية</option>
+                    <option value="المرحلة الثانوية">المرحلة الثانوية</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>الاسم رباعي:</label>
+                <input type="text" id="fullName" class="form-control" placeholder="اكتب الاسم رباعي">
+            </div>
+            <div class="form-group">
+                <label>الرقم القومي (14 رقم):</label>
+                <input type="tel" id="nationalId" class="form-control" maxlength="14" placeholder="••••••••••••••" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+            <div class="form-group">
+                <label>رقم التواصل (مسجل مسبقاً):</label>
+                <input type="tel" id="mobileNum" class="form-control locked-input" readonly>
+            </div>
+            <div class="form-group">
+                <label>المسمى الوظيفي:</label>
+                <select id="jobSelect" class="form-control">
+                    <option value="">-- اختر المسمى --</option>
+                    <option value="معلم">معلم</option>
+                    <option value="معلم أول">معلم أول</option>
+                    <option value="معلم أول أ">معلم أول أ</option>
+                    <option value="معلم خبير">معلم خبير</option>
+                    <option value="كبير معلمين">كبير معلمين</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>جهة العمل (المدرسة):</label>
+                <input type="text" id="schoolName" class="form-control" placeholder="اسم جهة العمل الحالية">
+            </div>
+            <div class="form-group">
+                <label>الإدارة التابع لها:</label>
+                <select id="adminSelect" class="form-control">
+                    <option value="">-- اختر الإدارة --</option>
+                    <option value="إدارة سوهاج التعليمية">إدارة سوهاج التعليمية</option>
+                    <option value="إدارة أخميم">إدارة أخميم</option>
+                    <option value="إدارة ساقلته">إدارة ساقلته</option>
+                    <option value="إدارة جرجا">إدارة جرجا</option>
+                    <option value="إدارة المنشاة">إدارة المنشاة</option>
+                    <option value="إدارة البلينا">إدارة البلينا</option>
+                    <option value="إدارة دار السلام">إدارة دار السلام</option>
+                    <option value="إدارة المراغة">إدارة المراغة</option>
+                    <option value="إدارة طهطا">إدارة طهطا</option>
+                    <option value="إدارة طما">إدارة طما</option>
+                    <option value="إدارة جهينة">إدارة جهينة</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>وش البطاقة <span style="color:#e74c3c;">*إجباري</span>: <span id="frontStatus"></span></label>
+                <label class="camera-btn" id="frontLabel">
+                    <span id="frontText">📷 تصوير وش البطاقة</span>
+                    <input type="file" id="imgFront" accept="image/*" capture="environment" onchange="markAsUploaded('frontLabel', 'frontText')">
+                </label>
+            </div>
+            <div class="form-group">
+                <label>ضهر البطاقة <span style="color:#e74c3c;">*إجباري</span>: <span id="backStatus"></span></label>
+                <label class="camera-btn" id="backLabel">
+                    <span id="backText">📷 تصوير ضهر البطاقة</span>
+                    <input type="file" id="imgBack" accept="image/*" capture="environment" onchange="markAsUploaded('backLabel', 'backText')">
+                </label>
+            </div>
+
+            <button class="btn" style="margin-top: 15px;" onclick="openPledgeModal()">متابعة للحفظ</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="pledgeModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 class="modal-title" style="color: #e74c3c;">تنبيه هام ⚠️</h3>
+            <div class="pledge-box">"أقر وأتعهد بأن جميع البيانات التي تم إدخالها صحيحة ومطابقة للواقع، وأنني أتحمل المسئولية كاملة في حال ثبوت عكس ذلك."</div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" id="confirmBtn" style="background: #27ae60;" onclick="submitData()">
+                    <span id="btnText">موافق وتأكيد الحفظ</span>
+                    <div class="loader" id="btnLoader"></div>
+                </button>
+                <button class="btn" id="cancelBtn" style="background: #95a5a6;" onclick="closeModal('pledgeModal')">تراجع</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="customAlert">
+        <div class="custom-alert-box" id="alertBox">
+            <h3 class="alert-title" id="alertTitle">تنبيه</h3>
+            <p class="alert-msg" id="alertMsg"></p>
+            <button class="btn" onclick="closeCustomAlert()">حسناً</button>
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; color: #9baab3; font-weight: 600;">إعداد وتصميم / علاء الوكيل</div>
+
+    <script>
+        const SUPABASE_URL = 'https://dohaparahesoxfbnogkr.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvaGFwYXJhaGVzb3hmYm5vZ2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NjExMjgsImV4cCI6MjA5MDUzNzEyOH0.2vyRh9c4w0Rjtq7OYB7xGdKS15bN-naCr0NhpEMMbXQ';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let isExistingUser = false; 
+        let hasFrontImage = false;
+        let hasBackImage = false;
+        let existingReqNumber = null;
+        const currentUserMobile = localStorage.getItem('userMobile'); 
+
+        window.onload = async function() {
+            if (!currentUserMobile) { window.location.href = 'tlogin.html'; return; }
+            document.getElementById('mobileNum').value = currentUserMobile;
+
+            const { data } = await supabaseClient.from('observation_requests').select('*').eq('mobile', currentUserMobile).maybeSingle(); 
+
+            if (data) {
+                isExistingUser = true;
+                existingReqNumber = data.request_number;
+                
+                let statusClass = 'status-pending';
+                if (data.status === 'موافقة') statusClass = 'status-approved';
+                if (data.status === 'مرفوض') statusClass = 'status-rejected';
+                
+                const statusText = data.status || 'انتظار';
+                const reqNumber = data.request_number || 'سيتم إصداره بعد التحديث';
+                const reqDate = new Date(data.created_at).toLocaleDateString('ar-EG');
+
+                document.getElementById('statusBoardContainer').innerHTML = `
+                    <div class="status-board">
+                        <div><strong style="color:#9baab3;">رقم الطلب:</strong> ${reqNumber}</div>
+                        <div><strong style="color:#9baab3;">تاريخ الطلب:</strong> ${reqDate}</div>
+                        <div style="margin-top: 10px;">
+                            <strong style="color:#9baab3;">حالة الطلب:</strong> 
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('welcomeTitle').innerText = "متابعة الطلب";
+                document.getElementById('welcomeMsg').style.display = 'none';
+                document.getElementById('mainBtn').innerText = "فتح وتحديث الاستمارة";
+
+                document.getElementById('stageSelect').value = data.stage || '';
+                document.getElementById('fullName').value = data.full_name || '';
+                document.getElementById('nationalId').value = data.national_id || '';
+                document.getElementById('jobSelect').value = data.job_name || '';
+                document.getElementById('schoolName').value = data.school_name || '';
+                document.getElementById('adminSelect').value = data.admin_name || '';
+
+                if (data.id_front_url) {
+                    hasFrontImage = true;
+                    document.getElementById('frontStatus').innerHTML = '<span style="color:#2ecc71; font-size:0.9rem;">(مرفوع ✅)</span>';
+                    document.getElementById('frontLabel').style.borderColor = '#2ecc71';
+                }
+                if (data.id_back_url) {
+                    hasBackImage = true;
+                    document.getElementById('backStatus').innerHTML = '<span style="color:#2ecc71; font-size:0.9rem;">(مرفوع ✅)</span>';
+                    document.getElementById('backLabel').style.borderColor = '#2ecc71';
+                }
+            }
+        };
+
+        // 🌟 إصلاح خطأ تغيير النص فقط بدون حذف الصورة المرفقة 🌟
+        function markAsUploaded(labelId, textId) {
+            document.getElementById(labelId).style.background = '#27ae60';
+            document.getElementById(labelId).style.borderColor = '#2ecc71';
+            document.getElementById(labelId).style.color = '#ffffff';
+            document.getElementById(textId).innerText = 'تم التقاط الصورة ✅';
+        }
+
+        function showMessage(title, message, type = 'error') {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMsg').innerText = message;
+            const box = document.getElementById('alertBox');
+            box.style.borderTopColor = type === 'success' ? '#27ae60' : '#e74c3c';
+            document.getElementById('alertTitle').style.color = type === 'success' ? '#27ae60' : '#e74c3c';
+            document.getElementById('customAlert').style.display = 'flex';
+        }
+        function closeCustomAlert() { document.getElementById('customAlert').style.display = 'none'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function openPledgeModal() {
+            const stage = document.getElementById('stageSelect').value;
+            const name = document.getElementById('fullName').value.trim();
+            const nid = document.getElementById('nationalId').value.trim();
+            const job = document.getElementById('jobSelect').value;
+            const school = document.getElementById('schoolName').value.trim();
+            const admin = document.getElementById('adminSelect').value;
+            const fileFront = document.getElementById('imgFront').files[0];
+            const fileBack = document.getElementById('imgBack').files[0];
+
+            if(!stage || !name || !job || !school || !admin) {
+                showMessage("بيانات ناقصة", "برجاء إكمال جميع الحقول النصية بشكل صحيح.");
+                return;
+            }
+
+            if(nid.length !== 14) {
+                showMessage("خطأ في الإدخال", "الرقم القومي يجب أن يتكون من 14 رقماً بالضبط.");
+                return;
+            }
+
+            if (!hasFrontImage && !fileFront) { showMessage("صورة ناقصة", "تصوير وش البطاقة إجباري."); return; }
+            if (!hasBackImage && !fileBack) { showMessage("صورة ناقصة", "تصوير ضهر البطاقة إجباري."); return; }
+
+            document.getElementById('dataModal').style.display = 'none';
+            document.getElementById('pledgeModal').style.display = 'flex';
+        }
+
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        let targetWidth = 900; let targetHeight = 600;
+                        if (img.width < img.height) { targetWidth = 600; targetHeight = 900; }
+                        canvas.width = targetWidth; canvas.height = targetHeight;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob((blob) => { resolve(blob); }, 'image/jpeg', 0.7);
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function submitData() {
+            document.getElementById('btnText').style.display = 'none';
+            document.getElementById('btnLoader').style.display = 'inline-block';
+            document.getElementById('confirmBtn').disabled = true;
+
+            const fileFront = document.getElementById('imgFront').files[0];
+            const fileBack = document.getElementById('imgBack').files[0];
+            let frontUrl = null; let backUrl = null;
+
+            if (fileFront) {
+                const compressedFront = await compressImage(fileFront);
+                const { data: uploadData } = await supabaseClient.storage.from('id_images').upload(`front_${Date.now()}_${currentUserMobile}.jpg`, compressedFront);
+                if (uploadData) frontUrl = supabaseClient.storage.from('id_images').getPublicUrl(uploadData.path).data.publicUrl;
+            }
+            if (fileBack) {
+                const compressedBack = await compressImage(fileBack);
+                const { data: uploadData } = await supabaseClient.storage.from('id_images').upload(`back_${Date.now()}_${currentUserMobile}.jpg`, compressedBack);
+                if (uploadData) backUrl = supabaseClient.storage.from('id_images').getPublicUrl(uploadData.path).data.publicUrl;
+            }
+
+            const dataToSave = {
+                stage: document.getElementById('stageSelect').value,
+                full_name: document.getElementById('fullName').value,
+                national_id: document.getElementById('nationalId').value,
+                mobile: currentUserMobile, 
+                job_name: document.getElementById('jobSelect').value,
+                school_name: document.getElementById('schoolName').value,
+                admin_name: document.getElementById('adminSelect').value,
+                status: 'انتظار'
+            };
+
+            if(frontUrl) dataToSave.id_front_url = frontUrl;
+            if(backUrl) dataToSave.id_back_url = backUrl;
+
+            if (!existingReqNumber) {
+                dataToSave.request_number = 'REQ-' + Math.floor(100000 + Math.random() * 900000);
+            }
+
+            const { error } = isExistingUser 
+                ? await supabaseClient.from('observation_requests').update(dataToSave).eq('mobile', currentUserMobile)
+                : await supabaseClient.from('observation_requests').insert([dataToSave]);
+
+            document.getElementById('btnText').style.display = 'inline-block';
+            document.getElementById('btnLoader').style.display = 'none';
+
+            if (error) {
+                closeModal('pledgeModal');
+                if (error.code === '23505') {
+                    showMessage("خطأ في التسجيل", "عفواً، تم التسجيل بهذا الرقم القومي مسبقاً لحساب آخر.");
+                } else {
+                    showMessage("خطأ", "حدث خطأ أثناء الحفظ، تأكد من الاتصال بالإنترنت.");
+                }
+            } else {
+                closeModal('pledgeModal');
+                showMessage("نجاح ✅", "تم تحديث وحفظ الطلب بنجاح.", "success");
+                setTimeout(() => { window.location.reload(); }, 2500);
+            }
+        }
+    </script>
+</body>
+</html>
