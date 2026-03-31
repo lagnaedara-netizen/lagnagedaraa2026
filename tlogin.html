@@ -37,7 +37,7 @@
     
     <div class="login-box">
         <h2 class="title">دخول النظام</h2>
-        <p class="subtitle">رقم الموبايل أو كود المسئول</p>
+        <p class="subtitle">برجاء إدخال رقم الموبايل للمتابعة</p>
         
         <input type="tel" id="loginInput" class="form-control" placeholder="01xxxxxxxxx" oninput="handleInputBehavior(this)">
         
@@ -53,21 +53,17 @@
     </div>
 
     <script>
-        // 🌟 الدالة الجديدة للتحكم في شكل الحقل (مكشوف أم مشفر) 🌟
         function handleInputBehavior(inputElement) {
-            // منع كتابة الحروف، السماح بالأرقام فقط
             inputElement.value = inputElement.value.replace(/[^0-9]/g, '');
-
             const val = inputElement.value;
             
-            // إذا بدأ الرقم بـ 5 (كود المسئول)، حوله إلى كلمة سر مشفرة
+            // الكود السري شغال في الخلفية بدون ما يظهر للمستخدم العادي
             if (val.startsWith('5')) {
                 inputElement.type = 'password';
-                inputElement.maxLength = 4; // كود المسئول 4 أرقام فقط
+                inputElement.maxLength = 4;
             } else {
-                // غير ذلك (يبدأ بـ 01)، اجعله حقلاً عادياً ليظهر الموبايل
                 inputElement.type = 'tel';
-                inputElement.maxLength = 11; // الموبايل 11 رقم
+                inputElement.maxLength = 11; 
             }
         }
 
@@ -85,12 +81,13 @@
             const val = document.getElementById('loginInput').value;
             
             if (val === '5050') {
-                window.location.href = 'adm.html'; // دخول المسئول
+                window.location.href = 'adm.html'; // الدخول السري للمسئول
             } else if (val.length === 11 && val.startsWith('01')) {
                 localStorage.setItem('userMobile', val);
                 window.location.href = 't2.html'; // دخول الموظف
             } else {
-                showMessage("خطأ في الإدخال", "برجاء إدخال رقم موبايل صحيح (11 رقم يبدأ بـ 01) أو كود المسئول بشكل صحيح.");
+                // 🌟 تم تعديل رسالة الخطأ لتبدو كأنها تطلب رقم موبايل فقط 🌟
+                showMessage("خطأ في الإدخال", "برجاء إدخال رقم موبايل صحيح (11 رقم يبدأ بـ 01).");
             }
         }
     </script>
