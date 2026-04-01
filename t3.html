@@ -9,6 +9,26 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         body { background: radial-gradient(circle at center, #35535c, #21353e); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; color: #ffffff; position: relative;}
+        
+        /* 🌟 تصميم شاشة التحميل (Loader) 🌟 */
+        #page-loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #35535c, #21353e);
+            z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .loader-logo { width: 110px; margin-bottom: 20px; filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.5)); animation: pulse 1.5s infinite alternate; }
+        .loader-title { font-size: 1.5rem; font-weight: 900; color: #f5c678; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.4); text-align: center;}
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #c59736;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        .loader-text { font-size: 1.1rem; font-weight: 600; color: #9baab3; }
+        @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+
         .eagle-logo { width: 90px; margin-bottom: 20px; filter: drop-shadow(0px 4px 10px rgba(0,0,0,0.5)); }
         .glass-box { background: rgba(20, 26, 50, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(214, 140, 41, 0.4); border-radius: 20px; padding: 30px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border-top: 5px solid #c59736; }
         
@@ -37,11 +57,18 @@
         .alert-msg { font-size: 1.1rem; font-weight: 600; color: #475569; margin-bottom: 20px; line-height: 1.5; }
         .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: all 0.3s ease; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .back-btn:hover { background: rgba(214, 140, 41, 0.8); transform: translateX(-5px); color: white; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #c59736; border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: inline-block; margin: 0 auto; display: none;}
+        .btn-loader { border: 4px solid #f3f3f3; border-top: 4px solid #c59736; border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: inline-block; margin: 0 auto; display: none;}
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+    <div id="page-loader">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Coat_of_arms_of_Egypt_%28Official%29.svg/1200px-Coat_of_arms_of_Egypt_%28Official%29.svg.png" class="loader-logo" alt="شعار">
+        <h2 class="loader-title">لجنة الإدارة للشهادة الإعدادية العامة</h2>
+        <div class="spinner"></div>
+        <div class="loader-text">جاري الاتصال بالنظام وتجهيز البيانات...</div>
+    </div>
+
     <a href="t2.html" class="back-btn">رجوع ↩</a>
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Coat_of_arms_of_Egypt_%28Official%29.svg/1200px-Coat_of_arms_of_Egypt_%28Official%29.svg.png" class="eagle-logo" alt="شعار">
 
@@ -141,7 +168,7 @@
             <div style="display: flex; gap: 10px;">
                 <button class="btn" id="confirmBtn" style="background: #27ae60;" onclick="submitData()">
                     <span id="btnText">موافق وتأكيد الحفظ</span>
-                    <div class="loader" id="btnLoader"></div>
+                    <div class="btn-loader" id="btnLoader"></div>
                 </button>
                 <button class="btn" id="cancelBtn" style="background: #95a5a6;" onclick="closeModal('pledgeModal')">تراجع</button>
             </div>
@@ -173,6 +200,7 @@
             if (!currentUserMobile) { window.location.href = 'tlogin.html'; return; }
             document.getElementById('mobileNum').value = currentUserMobile;
 
+            // جلب البيانات
             const { data } = await supabaseClient.from('observation_requests').select('*').eq('mobile', currentUserMobile).maybeSingle(); 
 
             if (data) {
@@ -220,6 +248,13 @@
                     document.getElementById('backLabel').style.borderColor = '#2ecc71';
                 }
             }
+
+            // 🌟 إخفاء شاشة التحميل بعد الانتهاء من تجهيز كل شيء 🌟
+            setTimeout(() => {
+                const loader = document.getElementById('page-loader');
+                loader.style.opacity = '0';
+                setTimeout(() => { loader.style.visibility = 'hidden'; }, 600);
+            }, 500); // إعطاء نصف ثانية إضافية لضمان سلاسة العرض
         };
 
         function markAsUploaded(labelId, textId) {
@@ -236,7 +271,6 @@
             box.style.borderTopColor = type === 'success' ? '#27ae60' : '#e74c3c';
             document.getElementById('alertTitle').style.color = type === 'success' ? '#27ae60' : '#e74c3c';
             
-            // إخفاء زر أوكي لو الرسالة هتتغير تلقائي
             document.getElementById('alertOkBtn').style.display = hideOkButton ? 'none' : 'inline-block';
             
             document.getElementById('customAlert').style.display = 'flex';
@@ -347,10 +381,8 @@
             } else {
                 closeModal('pledgeModal');
                 
-                // 🌟 الرسالة الأولى 🌟
                 showMessage("نجاح ✅", "تم حفظ وتحديث بياناتك بنجاح.", "success", true);
                 
-                // 🌟 الرسالة الثانية والتحديث 🌟
                 setTimeout(() => {
                     showMessage("تنبيه للمتابعة ℹ️", "برجاء متابعة طلبك من الشاشة الرئيسية لاحقاً لمعرفة حالة الموافقة أو الرفض.", "success", true);
                     
