@@ -32,9 +32,9 @@
         .modal-title { font-size: 1.8rem; font-weight: 900; color: #c59736; margin-bottom: 20px; text-align: center; }
         .pledge-box { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 20px; border-radius: 10px; font-weight: 800; text-align: center; margin-bottom: 20px; line-height: 1.6; font-size: 1.2rem;}
         .close-btn { position: absolute; top: 15px; left: 15px; background: #e74c3c; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;}
-        .custom-alert-box { background: #fff; border-radius: 20px; width: 100%; max-width: 400px; padding: 30px; text-align: center; border-top: 6px solid #e74c3c; }
+        .custom-alert-box { background: #fff; border-radius: 20px; width: 100%; max-width: 400px; padding: 30px; text-align: center; border-top: 6px solid #e74c3c; transition: 0.3s ease; }
         .alert-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 10px; }
-        .alert-msg { font-size: 1.1rem; font-weight: 600; color: #475569; margin-bottom: 20px; }
+        .alert-msg { font-size: 1.1rem; font-weight: 600; color: #475569; margin-bottom: 20px; line-height: 1.5; }
         .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 700; transition: all 0.3s ease; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .back-btn:hover { background: rgba(214, 140, 41, 0.8); transform: translateX(-5px); color: white; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #c59736; border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: inline-block; margin: 0 auto; display: none;}
@@ -152,7 +152,7 @@
         <div class="custom-alert-box" id="alertBox">
             <h3 class="alert-title" id="alertTitle">تنبيه</h3>
             <p class="alert-msg" id="alertMsg"></p>
-            <button class="btn" onclick="closeCustomAlert()">حسناً</button>
+            <button class="btn" id="alertOkBtn" onclick="closeCustomAlert()">حسناً</button>
         </div>
     </div>
 
@@ -222,7 +222,6 @@
             }
         };
 
-        // 🌟 إصلاح خطأ تغيير النص فقط بدون حذف الصورة المرفقة 🌟
         function markAsUploaded(labelId, textId) {
             document.getElementById(labelId).style.background = '#27ae60';
             document.getElementById(labelId).style.borderColor = '#2ecc71';
@@ -230,14 +229,19 @@
             document.getElementById(textId).innerText = 'تم التقاط الصورة ✅';
         }
 
-        function showMessage(title, message, type = 'error') {
+        function showMessage(title, message, type = 'error', hideOkButton = false) {
             document.getElementById('alertTitle').innerText = title;
             document.getElementById('alertMsg').innerText = message;
             const box = document.getElementById('alertBox');
             box.style.borderTopColor = type === 'success' ? '#27ae60' : '#e74c3c';
             document.getElementById('alertTitle').style.color = type === 'success' ? '#27ae60' : '#e74c3c';
+            
+            // إخفاء زر أوكي لو الرسالة هتتغير تلقائي
+            document.getElementById('alertOkBtn').style.display = hideOkButton ? 'none' : 'inline-block';
+            
             document.getElementById('customAlert').style.display = 'flex';
         }
+
         function closeCustomAlert() { document.getElementById('customAlert').style.display = 'none'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -342,8 +346,18 @@
                 }
             } else {
                 closeModal('pledgeModal');
-                showMessage("نجاح ✅", "تم تحديث وحفظ الطلب بنجاح.", "success");
-                setTimeout(() => { window.location.reload(); }, 2500);
+                
+                // 🌟 الرسالة الأولى 🌟
+                showMessage("نجاح ✅", "تم حفظ وتحديث بياناتك بنجاح.", "success", true);
+                
+                // 🌟 الرسالة الثانية والتحديث 🌟
+                setTimeout(() => {
+                    showMessage("تنبيه للمتابعة ℹ️", "برجاء متابعة طلبك من الشاشة الرئيسية لاحقاً لمعرفة حالة الموافقة أو الرفض.", "success", true);
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 4000);
+                }, 2500);
             }
         }
     </script>
